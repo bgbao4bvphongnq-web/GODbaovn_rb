@@ -1,0 +1,151 @@
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+-- MAIN GUI
+local gui = script.Parent
+local mainFrame = gui:WaitForChild("MainFrame")
+local flyBtn = mainFrame:WaitForChild("FlyButton")
+local speedyBtn = mainFrame:WaitForChild("SpeedyButton")
+local wallBtn = mainFrame:WaitForChild("WallButton")
+
+-- PANELS
+local flyPanel = gui:WaitForChild("FlyPanel")
+local unflyBtn = flyPanel:WaitForChild("UnflyButton")
+local flySpeedBox = flyPanel:WaitForChild("FlySpeedBox")
+
+local speedPanel = gui:WaitForChild("SpeedPanel")
+local speedBox = speedPanel:WaitForChild("SpeedBox")
+local applySpeedBtn = speedPanel:WaitForChild("ApplySpeedButton")
+local turnOffSpeedBtn = speedPanel:WaitForChild("TurnOffSpeedButton")
+
+local wallPanel = gui:WaitForChild("WallPanel")
+local wallOffBtn = wallPanel:WaitForChild("WallOffButton")
+
+---------------------------------------------------
+-- 1. FLY SYSTEM
+---------------------------------------------------
+local flying = false
+local bodyGyro, bodyVel
+local flySpeed = 60
+
+local function startFly()
+	flying = true
+	flyPanel.Visible = true
+
+	local char = player.Character or player.CharacterAdded:Wait()
+	local root = char:WaitForChild("HumanoidRootPart")
+
+	bodyGyro = Instance.new("BodyGyro", root)
+	bodyGyro.P = 9e4
+	bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+
+	bodyVel = Instance.new("BodyVelocity", root)
+	bodyVel.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+end
+
+local function stopFly()
+	flying = false
+	flyPanel.Visible = false
+
+	if bodyGyro then bodyGyro:Destroy() end
+	if bodyVel then bodyVel:Destroy() end
+end
+
+UIS.InputChanged:Connect(function()
+	if flying and bodyVel then
+		local char = player.Character
+		local hum = char:WaitForChild("Humanoid")
+		bodyGyro.CFrame = workspace.CurrentCamera.CFrame
+		bodyVel.Velocity = hum.MoveDirection * flySpeed
+	end
+end)
+
+flyBtn.MouseButton1Click:Connect(startFly)
+unflyBtn.MouseButton1Click:Connect(stopFly)
+
+flySpeedBox.FocusLost:Connect(function()
+	local val = tonumber(flySpeedBox.Text)
+	if val then flySpeed = val end
+end)
+
+---------------------------------------------------
+-- 2. SPEED SYSTEM
+---------------------------------------------------
+local function applySpeed()
+	local char = player.Character
+	local hum = char:WaitForChild("Humanoid")
+
+	local val = tonumber(speedBox.Text)
+	if val then
+		hum.WalkSpeed = val
+	end
+end
+
+local function resetSpeed()
+	local char = player.Character
+	local hum = char:WaitForChild("Humanoid")
+
+	hum.WalkSpeed = 16
+end
+
+speedyBtn.MouseButton1Click:Connect(function()
+	speedPanel.Visible = true
+end)
+
+applySpeedBtn.MouseButton1Click:Connect(applySpeed)
+turnOffSpeedBtn.MouseButton1Click:Connect(resetSpeed)
+
+---------------------------------------------------
+-- 3. WALL / Noclip SYSTEM
+---------------------------------------------------
+local noclip = false
+
+local function startNoclip()
+	noclip = true
+	wallPanel.Visible = true
+
+	task.spawn(function()
+		while noclip do
+			local char = player.Character
+			for _, v in ipairs(char:GetDescendants()) do
+				if v:IsA("BasePart") then
+					v.CanCollide = false
+				end
+			end
+			task.wait()
+		end
+	end)
+end
+
+local function stopNoclip()
+	noclip = false
+	wallPanel.Visible = false
+
+	local char = player.Character
+	for _, v in ipairs(char:GetDescendants()) do
+		if v:IsA("BasePart") then
+			v.CanCollide = true
+		end
+	end
+end
+
+wallBtn.MouseButton1Click:Connect(startNoclip)
+wallOffBtn.MouseButton1Click:Connect(stopNoclip)
+
+---------------------------------------------------
+-- TITLE
+---------------------------------------------------
+mainFrame.Title.Text = "ADMIN HUB BY (YOUTUBE: GODbaovn_rb)"
+-- 🌈 RAINBOW COLOR EFFECT FOR HUB
+local mainFrame = script.Parent:WaitForChild("MainFrame")
+
+task.spawn(function()
+    while true do
+        for hue = 0, 1, 0.01 do
+            local color = Color3.fromHSV(hue, 1, 1)
+            mainFrame.BackgroundColor3 = color
+            task.wait(0.03)
+        end
+    end
+end)
